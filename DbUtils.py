@@ -50,7 +50,7 @@ class DbUtils:
         except MySQLdb.Error as e:
             return e
             
-    def getvotes(self):
+    def getVotes(self):
         cursor = self.db.cursor()
         sql = f"select * from votes"
         try:
