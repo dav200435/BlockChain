@@ -93,4 +93,4 @@ class Menu:
         
     def run(self):
         self.events()
-        self.ui("Login", "Añade tu DNI")
+        self.ui("Login", "introduzca su DNI")
