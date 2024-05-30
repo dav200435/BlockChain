@@ -1,5 +1,6 @@
 import MySQLdb
 from hash import Hash
+import time
 
 class DbUtils:
     
@@ -20,10 +21,10 @@ class DbUtils:
 
     def getLogIn(self, dni):
         cursor = self.db.cursor()
-        sql = "SELECT * FROM users WHERE dni = %s"
+        sql = f"SELECT * FROM users WHERE dni = '{dni}'"
         try:
-            cursor.execute(sql, (dni,))
-            user = cursor.fetchone() 
+            cursor.execute(sql)
+            user = cursor.fetchone()
             return user
         except MySQLdb.Error as e:
             print(e)
@@ -58,16 +59,16 @@ class DbUtils:
         finally:
             cursor.close()
     
-    def vote(self, partido, fecha):
+    def vote(self, partido):
         cursor = self.db.cursor()
         prehash = self.getLastVoteHash()
         if prehash is None:
             prehash = ''
-        
-        data = f"{partido}-{fecha}-{prehash}"
+        timeStamp=str(time.time())
+        data = f"{partido}-{timeStamp}-{prehash}"
         current_hash = Hash.convHash(data)
         
-        sql = f"INSERT INTO votes (partido, fecha, hash, prehash) VALUES ('{partido}', '{fecha}', '{current_hash}', '{prehash}')"
+        sql = f"INSERT INTO votes (partido, fecha, hash, prehash) VALUES ('{partido}', '{timeStamp}', '{current_hash}', '{prehash}')"
         try:
             cursor.execute(sql)
             self.db.commit()
@@ -83,26 +84,27 @@ class DbUtils:
         try:
             cursor.execute(sql)
             values = cursor.fetchall()
+            previous_hash = ''
+            for value in values:
+                id, partido, fecha, hash_value, prehash_value = value
+                data = f"{partido}-{fecha}-{prehash_value}"
+                calculated_hash = Hash.convHash(data)
+                if calculated_hash != hash_value or prehash_value != previous_hash:
+                    return f"Error de integridad en el voto con ID {id}"
+                previous_hash = hash_value
+            
+            voteCounts = {}
+            for value in values:
+                partido = value[1]
+                if partido in voteCounts:
+                    voteCounts[partido] += 1
+                else:
+                    voteCounts[partido] = 1
+            return voteCounts
         except MySQLdb.Error as e:
             return e
         finally:
             cursor.close()
         
         # Verificar la integridad de los hashes
-        previous_hash = ''
-        for value in values:
-            id, partido, fecha, hash_value, prehash_value = value
-            data = f"{partido}-{fecha}-{prehash_value}"
-            calculated_hash = Hash.convHash(data)
-            if calculated_hash != hash_value or prehash_value != previous_hash:
-                return f"Error de integridad en el voto con ID {id}"
-            previous_hash = hash_value
         
-        voteCounts = {}
-        for value in values:
-            partido = value[1]
-            if partido in voteCounts:
-                voteCounts[partido] += 1
-            else:
-                voteCounts[partido] = 1
-        return voteCounts

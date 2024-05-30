@@ -11,17 +11,17 @@ except:
 class Menu:
     
     def __init__(self):
-        self.__run = True
         self.__user = None
         self.__db = DbUtils()
         self.__root = sg
     
     def login(self):
-        data = self.__db.getLogIn(self.values)
+        input = self.values[0]
+        data = self.__db.getLogIn(input)
         print(data)
         if data:
             self.__user = User(data[0], data[1], data[2], data[3], data[4])
-            if self.__user.admin():
+            if self.__user.admin == 1:
                 self.admin()
             else:
                 self.votes()

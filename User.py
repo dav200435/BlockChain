@@ -1,6 +1,6 @@
 class User:
     
-    def __init__(self, id, dni, nombre, admin, voted):
+    def __init__(self, id, dni, nombre, voted, admin):
         self.__id=id
         self.__dni = dni
         self.__nombre = nombre
