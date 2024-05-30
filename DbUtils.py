@@ -5,7 +5,7 @@ class DbUtils:
     
     def __init__(self):
         self.__ip='127.0.0.1'
-        self.__name='Temperatura'
+        self.__name='votaciones'
         self.__user="root"
         self.__passwd=""
         self.database=self.connect()
@@ -20,14 +20,16 @@ class DbUtils:
 
     def getLogIn(self, dni):
         cursor = self.db.cursor()
-        sql = f"SELECT * FROM users WHERE dni = {dni}"
+        sql = "SELECT * FROM users WHERE dni = %s"
         try:
-            cursor.execute(sql)
-            return cursor.fetchall()
+            cursor.execute(sql, (dni,))
+            user = cursor.fetchone() 
+            return user
         except MySQLdb.Error as e:
-            return e
+            print(e)
         finally:
             cursor.close()
+
 
     def voted(self, user):
         cursor = self.db.cursor()
